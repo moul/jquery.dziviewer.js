@@ -1,28 +1,90 @@
 (function() {
-  var $, DeepZoomImageDescriptor;
+  var $, DeepZoomImageDescriptor, methods,
+    __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   $ = $ || jQuery;
 
-  $.fn.dziviewer = (function() {
-
-    function dziviewer(options) {
-      var defaults, dzi;
+  methods = {
+    init: function(options) {
+      var $this, defaults, dzi;
       defaults = {
         dzi_url: 'tiles/sf.dzi',
         dzi_xml: '<?xml version="1.0" encoding="UTF-8"?><Image Format="png" Overlap="2" TileSize="128" xmlns="http://schemas.microsoft.com/deepzoom/2008"><Size Height="4716" Width="11709"/></Image>',
-        height: 400,
+        height: 500,
         width: 800,
         magnifier: true,
         src: 'tiles/sf.dzi'
       };
-      this.options = $.extend(defaults, options);
-      dzi = DeepZoomImageDescriptor.fromXML(this.options.dzi_url, this.options.dzi_xml);
-      console.log("init");
+      options = $.extend(defaults, options);
+      dzi = DeepZoomImageDescriptor.fromXML(options.dzi_url, options.dzi_xml);
+      $this = $(this);
+      return this.each(function() {
+        var layer, setmode, view;
+        setmode = function(mode) {
+          $(view.canvas).removeClass("mode_pan");
+          $(view.canvas).removeClass("mode_sel2d");
+          $(view.canvas).removeClass("mode_sel1d");
+          $(view.canvas).addClass("mode_" + mode);
+          return view.mode = mode;
+        };
+        ({
+          draw: function() {
+            return console.dir("draw");
+          }
+        });
+        view = $this.data("view");
+        layer = $this.data("layer");
+        if (!view) {
+          view = {
+            canvas: document.createElement("canvas"),
+            status: document.createElement("span"),
+            mode: null,
+            xdown: null,
+            ydown: null,
+            needdraw: false
+          };
+          $this.data("view", view);
+          layer = {
+            info: null,
+            xpos: 0,
+            ypos: 0,
+            xtilenum: null,
+            ytilenum: null,
+            level: null,
+            tilesize: null,
+            thumb: null,
+            tiles: []
+          };
+          $this.data("layer", layer);
+          $this.addClass("tileviewer");
+          $(view.canvas).css({
+            "background-color": "#222",
+            "width": options.width,
+            "height": options.height
+          });
+          $(view.canvas).attr({
+            width: options.width,
+            height: options.height
+          });
+          $this.append(view.canvas);
+          $(view.status).addClass("status");
+          $this.append(view.status);
+          setmode("pan");
+          return console.log(view);
+        }
+      });
     }
+  };
 
-    return dziviewer;
-
-  })();
+  $.fn.dziviewer = function(method) {
+    if (__indexOf.call(methods, method) >= 0) {
+      return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+    } else if (typeof method === 'object' || !method) {
+      return methods.init.apply(this, arguments);
+    } else {
+      return alert("Method " + method + " does not exist on jQuery.dziviewer");
+    }
+  };
 
   DeepZoomImageDescriptor = (function() {
 
@@ -33,6 +95,8 @@
       this.tileSize = tileSize;
       this.tileOverlap = tileOverlap;
       this.format = format;
+      this.path = this.source.substring(0, this.source.lastIndexOf('.'));
+      this.path = "" + this.path + "_files";
     }
 
     DeepZoomImageDescriptor.fromXML = function(source, xmlString) {
@@ -67,10 +131,7 @@
     };
 
     DeepZoomImageDescriptor.prototype.getTileURL = function(level, column, row) {
-      var basePath, path;
-      basePath = this.source.substring(0, this.source.lastIndexOf('.'));
-      path = "" + basePath + "_files";
-      return "" + path + "/" + level + "/" + column + "_" + row + "." + this.format;
+      return "" + this.path + "/" + level + "/" + column + "_" + row + "." + this.format;
     };
 
     return DeepZoomImageDescriptor;

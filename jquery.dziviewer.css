@@ -9,12 +9,11 @@
 }
 
 .tileviewer .status {
-  width: 200px;
   position: absolute;
   font-size: 9pt;
   color: yellow;
   top: 8px;
-  right: 7px;
+  left: 7px;
 }
 
 .tileviewer canvas.mode_pan:active {

@@ -57,7 +57,7 @@
           end = new Date().getTime();
           time = end - start;
           if (options.showStatus) {
-            $(view.status).html("width: " + dzi.width + ", height: " + dzi.height + ", time(msec): " + time);
+            $(view.status).html("width: " + dzi.width + ", height: " + dzi.height + ", time(msec): " + time + ", level: " + layer.level + ", l.tilesize: " + layer.tilesize);
           }
           debug("draw");
         };
@@ -217,8 +217,41 @@
             if (view.xdown && view.mode === "pan") {
               layer.xpos = e.clientX - view.xdown;
               layer.ypos = e.clientY - view.ydown;
-              return draw();
+              draw();
             }
+            return false;
+          });
+          $(view.canvas).bind("mousewheel.dziviewer", function(e, delta) {
+            var dist_from_x0, dist_from_y0, offset;
+            debug(delta);
+            if (view.mode === "pan") {
+              delta = delta * 16;
+              if (layer.level === 0 && layer.tilesize + delta > dzi.tileSize) {
+                return false;
+              }
+              if (layer.level === layer.maxlevel && layer.tilesize + delta < dzi.tileSize / 2) {
+                return false;
+              }
+              offset = $(view.canvas).offset();
+              dist_from_x0 = e.pageX - offset.left - layer.xpos;
+              dist_from_y0 = e.pageY - offset.top - layer.ypos;
+              layer.xpos -= dist_from_x0 / layer.tilesize * delta;
+              layer.ypos -= dist_from_y0 / layer.tilesize * delta;
+              layer.tilesize += delta;
+              if (layer.tilesize > dzi.tileSize && layer.level !== 0) {
+                layer.level--;
+                layer.tilesize /= 2;
+                recalc_viewparams();
+              }
+              if (layer.tilesize < dzi.tileSize / 2 && layer.level !== layer.maxlevel) {
+                layer.level++;
+                layer.tilesize *= 2;
+                recalc_viewparams();
+              }
+              draw();
+            }
+            debug("mousewheel");
+            return false;
           });
           debug("view");
         }

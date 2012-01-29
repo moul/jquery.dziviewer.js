@@ -190,6 +190,18 @@ methods =
                                                 draw()
                                         setTimeout check_needdraw, 100
                                 setTimeout check_needdraw, 100
+
+                                $(view.canvas).mousedown (e) ->
+                                        view.xdown = e.clientX - layer.xpos
+                                        view.ydown = e.clientY - layer.ypos
+                                        return false
+
+                                $(document).mouseup (e) ->
+                                        if view.xdown and view.mode == "pan"
+                                                layer.xpos = e.clientX - view.xdown
+                                                layer.ypos = e.clientY - view.ydown
+                                                draw()
+
                                 debug "view"
                                 return
 

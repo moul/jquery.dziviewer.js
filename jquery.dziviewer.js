@@ -208,6 +208,18 @@
             return setTimeout(check_needdraw, 100);
           };
           setTimeout(check_needdraw, 100);
+          $(view.canvas).mousedown(function(e) {
+            view.xdown = e.clientX - layer.xpos;
+            view.ydown = e.clientY - layer.ypos;
+            return false;
+          });
+          $(document).mouseup(function(e) {
+            if (view.xdown && view.mode === "pan") {
+              layer.xpos = e.clientX - view.xdown;
+              layer.ypos = e.clientY - view.ydown;
+              return draw();
+            }
+          });
           debug("view");
         }
       });

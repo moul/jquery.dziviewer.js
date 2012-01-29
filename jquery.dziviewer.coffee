@@ -30,6 +30,7 @@ methods =
                                 return
 
                         debug = (text) ->
+                                return
                                 console.log text
 
                         recalc_viewparams = () ->
@@ -78,9 +79,9 @@ methods =
                                 debug "test"
                                 dodraw = () ->
                                         xsize = layer.tilesize
-                                        xsize = layer.tilesize / dzi.tileSize * layer.tilesize_xlast if x == layer.xtilenum - 1
+                                        #xsize = layer.tilesize / dzi.tileSize * layer.tilesize_xlast if x == layer.xtilenum - 1
                                         ysize = layer.tilesize
-                                        ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast if y == layer.ytilenum - 1
+                                        #ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast if y == layer.ytilenum - 1
                                         ctx.drawImage img, layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize
                                         debug "layer.xpos + x * layer.tilesize = #{layer.xpos + x * layer.tilesize}"
                                         debug "layer.ypos + y * layer.tilesize = #{layer.ypos + y * layer.tilesize}"
@@ -174,7 +175,7 @@ methods =
                                         $this.append view.status
                                 setmode "pan"
                                 layer.maxlevel = Math.ceil Math.log((Math.max options.width, options.height) / dzi.tileSize) / Math.log(2)
-                                layer.maxlevel = 15
+                                layer.maxlevel = 3
                                 layer.level = Math.max 0, layer.maxlevel - 1
                                 debug layer
                                 #return
@@ -278,4 +279,5 @@ class DeepZoomImageDescriptor
         getTileURL: (level, column, row) ->
                 #basePath = @source.substring 0, @source.lastIndexOf '.'
                 #path = "#{basePath}_files"
+                level = 14 - level
                 return "#{@path}/#{level}/#{column}_#{row}.#{@format}"

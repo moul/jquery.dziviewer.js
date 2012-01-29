@@ -33,6 +33,7 @@
           view.mode = mode;
         };
         debug = function(text) {
+          return;
           return console.log(text);
         };
         recalc_viewparams = function() {
@@ -82,13 +83,7 @@
           dodraw = function() {
             var xsize, ysize;
             xsize = layer.tilesize;
-            if (x === layer.xtilenum - 1) {
-              xsize = layer.tilesize / dzi.tileSize * layer.tilesize_xlast;
-            }
             ysize = layer.tilesize;
-            if (y === layer.ytilenum - 1) {
-              ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast;
-            }
             ctx.drawImage(img, layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize);
             debug("layer.xpos + x * layer.tilesize = " + (layer.xpos + x * layer.tilesize));
             debug("layer.ypos + y * layer.tilesize = " + (layer.ypos + y * layer.tilesize));
@@ -197,7 +192,7 @@
           }
           setmode("pan");
           layer.maxlevel = Math.ceil(Math.log((Math.max(options.width, options.height)) / dzi.tileSize) / Math.log(2));
-          layer.maxlevel = 15;
+          layer.maxlevel = 3;
           layer.level = Math.max(0, layer.maxlevel - 1);
           debug(layer);
           layer.tilesize = dzi.tileSize / 2;
@@ -317,6 +312,7 @@
     };
 
     DeepZoomImageDescriptor.prototype.getTileURL = function(level, column, row) {
+      level = 14 - level;
       return "" + this.path + "/" + level + "/" + column + "_" + row + "." + this.format;
     };
 

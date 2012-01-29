@@ -35,6 +35,7 @@ methods =
 
                         recalc_viewparams = () ->
                                 factor = Math.pow 2, layer.level
+                                console.log factor
                                 layer.xtilenum = Math.ceil dzi.width / factor / dzi.tileSize
                                 layer.ytilenum = Math.ceil dzi.height / factor / dzi.tileSize
                                 layer.tilesize_xlast = dzi.width / factor % dzi.tileSize
@@ -67,6 +68,8 @@ methods =
                                 ymin = Math.max 0, Math.floor(-layer.ypos / dzi.tileSize)
                                 xmax = Math.min layer.xtilenum, Math.ceil (view.canvas.clientWidth - layer.xpos) / layer.tilesize
                                 ymax = Math.min layer.ytilenum, Math.ceil (view.canvas.clientHeight - layer.ypos) / layer.tilesize
+                                console.log "layer.xtilenum: #{layer.xtilenum}, view.canvas.clientWidth: #{view.canvas.clientWidth}, layer.xpos: #{layer.xpos}, layer.tilesize: #{layer.tilesize}"
+                                console.log "xmin: #{xmin}, ymin: #{ymin}, xmax: #{xmax}, ymax: #{ymax}"
                                 for y in [ymin..ymax]
                                         for x in [xmin..xmax]
                                                 draw_tile ctx, x, y
@@ -74,7 +77,7 @@ methods =
                                 return
 
                         draw_tile = (ctx, x, y) ->
-                                url = dzi.getTileURL layer.level, x, y
+                                url = dzi.getTileURL (20 - layer.level), x, y
                                 img = layer.tiles[url]
                                 debug "test"
                                 dodraw = () ->
@@ -174,9 +177,10 @@ methods =
                                         $(view.status).addClass "status"
                                         $this.append view.status
                                 setmode "pan"
-                                layer.maxlevel = Math.ceil Math.log((Math.max options.width, options.height) / dzi.tileSize) / Math.log(2)
-                                layer.maxlevel = 3
-                                layer.level = Math.max 0, layer.maxlevel - 1
+                                #v1 = Math.max(dzi.width, dzi.height) / dzi.tileSize
+                                #layer.maxlevel = Math.ceil(Math.log(v1) / Math.log(2))
+                                layer.maxlevel = Math.ceil(Math.log(Math.max(dzi.width, dzi.height)) / Math.LN2) + 1
+                                layer.level = Math.max 0, layer.maxlevel - 3
                                 debug layer
                                 #return
                                 layer.tilesize = dzi.tileSize / 2
@@ -279,5 +283,4 @@ class DeepZoomImageDescriptor
         getTileURL: (level, column, row) ->
                 #basePath = @source.substring 0, @source.lastIndexOf '.'
                 #path = "#{basePath}_files"
-                level = 14 - level
                 return "#{@path}/#{level}/#{column}_#{row}.#{@format}"

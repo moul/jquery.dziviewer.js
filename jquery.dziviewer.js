@@ -39,6 +39,7 @@
         recalc_viewparams = function() {
           var factor;
           factor = Math.pow(2, layer.level);
+          console.log(factor);
           layer.xtilenum = Math.ceil(dzi.width / factor / dzi.tileSize);
           layer.ytilenum = Math.ceil(dzi.height / factor / dzi.tileSize);
           layer.tilesize_xlast = dzi.width / factor % dzi.tileSize;
@@ -68,6 +69,8 @@
           ymin = Math.max(0, Math.floor(-layer.ypos / dzi.tileSize));
           xmax = Math.min(layer.xtilenum, Math.ceil((view.canvas.clientWidth - layer.xpos) / layer.tilesize));
           ymax = Math.min(layer.ytilenum, Math.ceil((view.canvas.clientHeight - layer.ypos) / layer.tilesize));
+          console.log("layer.xtilenum: " + layer.xtilenum + ", view.canvas.clientWidth: " + view.canvas.clientWidth + ", layer.xpos: " + layer.xpos + ", layer.tilesize: " + layer.tilesize);
+          console.log("xmin: " + xmin + ", ymin: " + ymin + ", xmax: " + xmax + ", ymax: " + ymax);
           for (y = ymin; ymin <= ymax ? y <= ymax : y >= ymax; ymin <= ymax ? y++ : y--) {
             for (x = xmin; xmin <= xmax ? x <= xmax : x >= xmax; xmin <= xmax ? x++ : x--) {
               draw_tile(ctx, x, y);
@@ -77,7 +80,7 @@
         };
         draw_tile = function(ctx, x, y) {
           var dodraw, img, url;
-          url = dzi.getTileURL(layer.level, x, y);
+          url = dzi.getTileURL(20 - layer.level, x, y);
           img = layer.tiles[url];
           debug("test");
           dodraw = function() {
@@ -191,9 +194,8 @@
             $this.append(view.status);
           }
           setmode("pan");
-          layer.maxlevel = Math.ceil(Math.log((Math.max(options.width, options.height)) / dzi.tileSize) / Math.log(2));
-          layer.maxlevel = 3;
-          layer.level = Math.max(0, layer.maxlevel - 1);
+          layer.maxlevel = Math.ceil(Math.log(Math.max(dzi.width, dzi.height)) / Math.LN2) + 1;
+          layer.level = Math.max(0, layer.maxlevel - 3);
           debug(layer);
           layer.tilesize = dzi.tileSize / 2;
           recalc_viewparams();
@@ -312,7 +314,6 @@
     };
 
     DeepZoomImageDescriptor.prototype.getTileURL = function(level, column, row) {
-      level = 14 - level;
       return "" + this.path + "/" + level + "/" + column + "_" + row + "." + this.format;
     };
 

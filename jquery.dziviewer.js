@@ -16,8 +16,8 @@
         showStatus: true,
         emptyColor: '#6F6',
         thumbDepth: 2,
-        background: '#222',
-        thumbColor: '#f00',
+        backgroundColor: '#22F',
+        thumbColor: '#F00',
         src: 'tiles/sf.dzi'
       };
       options = $.extend(defaults, options);
@@ -176,7 +176,7 @@
           };
           $this.data("layer", layer);
           $(view.canvas).css({
-            "background-color": "#222",
+            "background-color": options.backgroundColor,
             "width": layer.width,
             "height": layer.height
           });

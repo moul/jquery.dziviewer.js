@@ -9,6 +9,7 @@ methods =
                         height: 500,
                         width: 800,
                         magnifier: true,
+                        showStatus: true,
                         src: 'tiles/sf.dzi'
 
                 options = $.extend(defaults, options)
@@ -22,11 +23,42 @@ methods =
                                 $(view.canvas).removeClass "mode_sel1d"
                                 $(view.canvas).addClass "mode_#{mode}"
                                 view.mode = mode
+                                return
 
-                        draw: ->
-                                console.dir "draw"
+                        debug = (text) ->
+                                console.log text
+
+                        recalc_viewparams = () ->
+                                factor = Math.pow 2, layer.level
+                                layer.xtilenum = Math.ceil layer.width / factor / layer.tilesize
+                                layer.ytilenum = Math.ceil layer.height / factor / layer.tilesize
+                                layer.tilesize_xlast = layer.width / factor % layer.tilesize
+                                layer.tilesize_ylast = layer.height / factor % layer.tilesize
+                                layer.tilesize_xlast = layer.tilesize if layer.tilesize_xlast == 0
+                                layer.tilesize_ylast = layer.tilesize if layer.tilesize_ylast == 0
+                                debug "recalc_viewparams"
+                                return
+
+                        draw = () ->
+                                view.needdraw = false
+                                ctx = view.canvas.getContext "2d"
+                                view.canvas.width = view.canvas.width #clear
+                                start = new Date().getTime()
+                                draw_tiles ctx
+                                if layer.maxlevel - layer.level > options.thumb_depth
+                                        draw_thumb ctx
+                                end = new Date().getTime()
+                                time = end - start
+                                if options.showStatus
+                                        $(view.status).html "width: #{layer.width}, height: #{layer.height}, time(msec): #{time}"
                                 #console.dir dzi.getTileURL 8, 1, 2
                                 #console.dir dzi.getTileURL 8, 2, 2
+                                debug "draw"
+                                return
+
+                        draw_tiles = () ->
+                                debug "draw_tiles"
+                                return
 
                         view = $this.data "view"
                         layer = $this.data "layer"
@@ -47,21 +79,28 @@ methods =
                                         xtilenum: null,
                                         ytilenum: null,
                                         level: null,
-                                        maxlevel: 0,
-                                        tilesize: null,
+                                        maxlevel: (Math.ceil Math.log((Math.max options.width, options.height) / options.tilesize) / Math.log(2)),
+                                        tilesize: options.tilesize,
                                         thumb: null,
+                                        width: options.width,
+                                        height: options.height,
                                         tiles: []
+                                layer.level = Math.max 0, layer.maxlevel - 1
                                 $this.data "layer", layer
 
+                                $(view.canvas).css ("background-color": "#222", "width": layer.width, "height": layer.height)
+                                $(view.canvas).attr (width: layer.width, height: layer.height)
                                 $this.addClass "tileviewer"
-                                $(view.canvas).css ("background-color": "#222", "width": options.width, "height": options.height)
-                                $(view.canvas).attr (width: options.width, height: options.height)
                                 $this.append view.canvas
-                                $(view.status).addClass "status"
-                                $this.append view.status
+                                if options.showStatus
+                                        $(view.status).addClass "status"
+                                        $this.append view.status
                                 setmode "pan"
-                                layer.maxlevel = Math.ceil Math.log((Math.max options.width, options.height) / options.tilesize) / Math.log(2)
-                                console.log view
+
+                                recalc_viewparams()
+                                draw()
+                                debug "view"
+                                return
 
         setmode: (mode) ->
                 return @each (@setmode mode)

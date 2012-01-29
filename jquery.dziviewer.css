@@ -1,0 +1,26 @@
+.tileviewer {
+  display: inline-block;
+  position: relative;
+  border: 5px solid red;
+  line-height: 0%; /*without this, there will be a weird bottom space..*/
+}
+
+.tileviewer canvas {
+}
+
+.tileviewer .status {
+  width: 200px;
+  position: absolute;
+  font-size: 9pt;
+  color: yellow;
+  top: 8px;
+  right: 7px;
+}
+
+.tileviewer canvas.mode_pan:active {
+  cursor: pointer;
+}
+
+.tileviewer canvas.mode_pan:active {
+  cursor: move;
+}

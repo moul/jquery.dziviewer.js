@@ -13,8 +13,9 @@ methods =
 
                 options = $.extend(defaults, options)
                 dzi = DeepZoomImageDescriptor.fromXML options.dzi_url, options.dzi_xml
-                $this = $(this)
+
                 return @each ->
+                        $this = $(this)
                         setmode = (mode) ->
                                 $(view.canvas).removeClass "mode_pan"
                                 $(view.canvas).removeClass "mode_sel2d"
@@ -45,7 +46,8 @@ methods =
                                         ypos: 0,
                                         xtilenum: null,
                                         ytilenum: null,
-                                        level: null
+                                        level: null,
+                                        maxlevel: 0,
                                         tilesize: null,
                                         thumb: null,
                                         tiles: []
@@ -58,7 +60,11 @@ methods =
                                 $(view.status).addClass "status"
                                 $this.append view.status
                                 setmode "pan"
+                                layer.maxlevel = Math.ceil Math.log((Math.max options.width, options.height) / options.tilesize) / Math.log(2)
                                 console.log view
+
+        setmode: (mode) ->
+                return @each (@setmode mode)
 
 $.fn.dziviewer = (method) ->
         if method in methods

@@ -6,7 +6,7 @@
 
   methods = {
     init: function(options) {
-      var $this, defaults, dzi;
+      var defaults, dzi;
       defaults = {
         dzi_url: 'tiles/sf.dzi',
         dzi_xml: '<?xml version="1.0" encoding="UTF-8"?><Image Format="png" Overlap="2" TileSize="128" xmlns="http://schemas.microsoft.com/deepzoom/2008"><Size Height="4716" Width="11709"/></Image>',
@@ -17,9 +17,9 @@
       };
       options = $.extend(defaults, options);
       dzi = DeepZoomImageDescriptor.fromXML(options.dzi_url, options.dzi_xml);
-      $this = $(this);
       return this.each(function() {
-        var layer, setmode, view;
+        var $this, layer, setmode, view;
+        $this = $(this);
         setmode = function(mode) {
           $(view.canvas).removeClass("mode_pan");
           $(view.canvas).removeClass("mode_sel2d");
@@ -51,6 +51,7 @@
             xtilenum: null,
             ytilenum: null,
             level: null,
+            maxlevel: 0,
             tilesize: null,
             thumb: null,
             tiles: []
@@ -70,9 +71,13 @@
           $(view.status).addClass("status");
           $this.append(view.status);
           setmode("pan");
+          layer.maxlevel = Math.ceil(Math.log((Math.max(options.width, options.height)) / options.tilesize) / Math.log(2));
           return console.log(view);
         }
       });
+    },
+    setmode: function(mode) {
+      return this.each(this.setmode(mode));
     }
   };
 

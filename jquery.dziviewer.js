@@ -23,7 +23,7 @@
       options = $.extend(defaults, options);
       dzi = DeepZoomImageDescriptor.fromXML(options.dziUrl, options.dziXml);
       return this.each(function() {
-        var $this, debug, draw, draw_subtile, draw_tile, draw_tiles, layer, recalc_viewparams, setmode, view;
+        var $this, check_needdraw, debug, draw, draw_subtile, draw_tile, draw_tiles, layer, recalc_viewparams, setmode, view;
         $this = $(this);
         setmode = function(mode) {
           $(view.canvas).removeClass("mode_pan");
@@ -78,6 +78,7 @@
           var dodraw, img, url;
           url = dzi.getTileURL(layer.level, x, y);
           img = layer.tiles[url];
+          debug("test");
           dodraw = function() {
             var xsize, ysize;
             xsize = layer.tilesize;
@@ -89,6 +90,10 @@
               ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast;
             }
             ctx.drawImage(img, layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize);
+            debug("layer.xpos + x * layer.tilesize = " + (layer.xpos + x * layer.tilesize));
+            debug("layer.ypos + y * layer.tilesize = " + (layer.ypos + y * layer.tilesize));
+            debug("xsize = " + xsize);
+            debug("ysize = " + ysize);
             return debug("draw_tile::dodraw");
           };
           if (!img) {
@@ -106,7 +111,9 @@
             img.level_loaded_for = layer.level;
             img.src = url;
             layer.tiles[url] = img;
+            debug("b");
           } else if (img.loaded) {
+            debug("a");
             dodraw();
             return;
           }
@@ -196,6 +203,11 @@
           layer.tilesize = dzi.tileSize / 2;
           recalc_viewparams();
           draw();
+          check_needdraw = function() {
+            if (view.needdraw) draw();
+            return setTimeout(check_needdraw, 100);
+          };
+          setTimeout(check_needdraw, 100);
           debug("view");
         }
       });

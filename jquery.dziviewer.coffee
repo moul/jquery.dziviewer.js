@@ -75,12 +75,17 @@ methods =
                         draw_tile = (ctx, x, y) ->
                                 url = dzi.getTileURL layer.level, x, y
                                 img = layer.tiles[url]
+                                debug "test"
                                 dodraw = () ->
                                         xsize = layer.tilesize
                                         xsize = layer.tilesize / dzi.tileSize * layer.tilesize_xlast if x == layer.xtilenum - 1
                                         ysize = layer.tilesize
                                         ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast if y == layer.ytilenum - 1
                                         ctx.drawImage img, layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize
+                                        debug "layer.xpos + x * layer.tilesize = #{layer.xpos + x * layer.tilesize}"
+                                        debug "layer.ypos + y * layer.tilesize = #{layer.ypos + y * layer.tilesize}"
+                                        debug "xsize = #{xsize}"
+                                        debug "ysize = #{ysize}"
                                         debug "draw_tile::dodraw"
 
                                 if not img
@@ -95,7 +100,9 @@ methods =
                                         img.level_loaded_for = layer.level
                                         img.src = url
                                         layer.tiles[url] = img
+                                        debug "b"
                                 else if img.loaded
+                                        debug "a"
                                         dodraw()
                                         return
                                 draw_subtile ctx, x, y
@@ -174,6 +181,15 @@ methods =
                                 layer.tilesize = dzi.tileSize / 2
                                 recalc_viewparams()
                                 draw()
+
+                                #load thumbnail
+                                #layer.thumb = new Image()
+
+                                check_needdraw = () ->
+                                        if view.needdraw
+                                                draw()
+                                        setTimeout check_needdraw, 100
+                                setTimeout check_needdraw, 100
                                 debug "view"
                                 return
 

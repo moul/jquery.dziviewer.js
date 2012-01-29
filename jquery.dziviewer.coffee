@@ -4,16 +4,20 @@ $ = $ or jQuery
 methods =
         init: (options) ->
                 defaults =
-                        dzi_url: 'tiles/sf.dzi',
-                        dzi_xml: '<?xml version="1.0" encoding="UTF-8"?><Image Format="png" Overlap="2" TileSize="128" xmlns="http://schemas.microsoft.com/deepzoom/2008"><Size Height="4716" Width="11709"/></Image>',
+                        dziUrl: 'tiles/sf.dzi',
+                        dziXml: '<?xml version="1.0" encoding="UTF-8"?><Image Format="png" Overlap="2" TileSize="128" xmlns="http://schemas.microsoft.com/deepzoom/2008"><Size Height="4716" Width="11709"/></Image>',
                         height: 500,
                         width: 800,
                         magnifier: true,
                         showStatus: true,
+                        emptyColor: '#6F6',
+                        thumbDepth: 2,
+                        background: '#222',
+                        thumbColor: '#f00',
                         src: 'tiles/sf.dzi'
 
                 options = $.extend(defaults, options)
-                dzi = DeepZoomImageDescriptor.fromXML options.dzi_url, options.dzi_xml
+                dzi = DeepZoomImageDescriptor.fromXML options.dziUrl, options.dziXml
 
                 return @each ->
                         $this = $(this)
@@ -30,12 +34,12 @@ methods =
 
                         recalc_viewparams = () ->
                                 factor = Math.pow 2, layer.level
-                                layer.xtilenum = Math.ceil layer.width / factor / layer.tilesize
-                                layer.ytilenum = Math.ceil layer.height / factor / layer.tilesize
-                                layer.tilesize_xlast = layer.width / factor % layer.tilesize
-                                layer.tilesize_ylast = layer.height / factor % layer.tilesize
-                                layer.tilesize_xlast = layer.tilesize if layer.tilesize_xlast == 0
-                                layer.tilesize_ylast = layer.tilesize if layer.tilesize_ylast == 0
+                                layer.xtilenum = Math.ceil dzi.width / factor / dzi.tileSize
+                                layer.ytilenum = Math.ceil dzi.height / factor / dzi.tileSize
+                                layer.tilesize_xlast = dzi.width / factor % dzi.tileSize
+                                layer.tilesize_ylast = dzi.height / factor % dzi.tileSize
+                                layer.tilesize_xlast = dzi.tileSize if layer.tilesize_xlast == 0
+                                layer.tilesize_ylast = dzi.tileSize if layer.tilesize_ylast == 0
                                 debug "recalc_viewparams"
                                 return
 
@@ -44,20 +48,87 @@ methods =
                                 ctx = view.canvas.getContext "2d"
                                 view.canvas.width = view.canvas.width #clear
                                 start = new Date().getTime()
+
                                 draw_tiles ctx
+
                                 if layer.maxlevel - layer.level > options.thumb_depth
                                         draw_thumb ctx
                                 end = new Date().getTime()
                                 time = end - start
                                 if options.showStatus
-                                        $(view.status).html "width: #{layer.width}, height: #{layer.height}, time(msec): #{time}"
-                                #console.dir dzi.getTileURL 8, 1, 2
-                                #console.dir dzi.getTileURL 8, 2, 2
+                                        $(view.status).html "width: #{dzi.width}, height: #{dzi.height}, time(msec): #{time}"
                                 debug "draw"
                                 return
 
-                        draw_tiles = () ->
+
+                        draw_tiles = (ctx) ->
+                                xmin = Math.max 0, Math.floor(-layer.xpos / dzi.tileSize)
+                                ymin = Math.max 0, Math.floor(-layer.ypos / dzi.tileSize)
+                                xmax = Math.min layer.xtilenum, Math.ceil (view.canvas.clientWidth - layer.xpos) / layer.tilesize
+                                ymax = Math.min layer.ytilenum, Math.ceil (view.canvas.clientHeight - layer.ypos) / layer.tilesize
+                                for y in [ymin..ymax]
+                                        for x in [xmin..xmax]
+                                                draw_tile ctx, x, y
                                 debug "draw_tiles"
+                                return
+
+                        draw_tile = (ctx, x, y) ->
+                                url = dzi.getTileURL layer.level, x, y
+                                img = layer.tiles[url]
+                                dodraw = () ->
+                                        xsize = layer.tilesize
+                                        xsize = layer.tilesize / dzi.tileSize * layer.tilesize_xlast if x == layer.xtilenum - 1
+                                        ysize = layer.tilesize
+                                        ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast if y == layer.ytilenum - 1
+                                        ctx.drawImage img, layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize
+                                        debug "draw_tile::dodraw"
+
+                                if not img
+                                        img = new Image()
+                                        img.onload = () ->
+                                                img.loaded = true
+                                                if img.level_loaded_for == layer.level
+                                                        view.needdraw = true
+                                        img.onerror = () ->
+                                                debug "failed to load #{url} on x=#{x} y=#{y}"
+                                        img.loaded = false
+                                        img.level_loaded_for = layer.level
+                                        img.src = url
+                                        layer.tiles[url] = img
+                                else if img.loaded
+                                        dodraw()
+                                        return
+                                draw_subtile ctx, x, y
+
+                                #debug "draw_tile: #{url}"
+                                debug "draw_tile"
+                                return
+
+                        draw_subtile = (ctx, x, y) ->
+                                xsize = layer.tilesize
+                                xsize = layer.tilesize / dzi.tileSize * layer.tilesize_xlast if x == layer.xtilenum - 1
+                                ysize = layer.tilesize
+                                ysize = layer.tilesize / dzi.tileSize * layer.tilesize_ylast if y == layer.ytilenum - 1
+                                down = 1
+                                factor = 1
+                                while layer.level + down <= layer.maxlevel
+                                        factor <<= 1
+                                        xtilenum_up = Math.ceil(dzi.width / Math.pow(2, layer.level + down) / dzi.tilesize)
+                                        url = dzi.getTileURL layer.level + down, Math.floor(x / factor), Math.floor(y / factor) * xtilenum_up
+                                        img = layer.tiles[url]
+                                        if img && img.loaded
+                                                half_tilesize = dzi.tileSize / factor
+                                                sx = (x % factor) * half_tilesize
+                                                sy = (y % factor) * half_tilesize
+                                                sw = half_tilesize
+                                                sw = layer.tilesize_xlast / factor if x == layer.xtilenum - 1
+                                                sh = half_tilesize
+                                                sh = layer.tilesize_ylast / factor if y == layer.ytilenum - 1
+                                                ctx.drawImage img, sx, sy, sw, sh, layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize
+                                        down++
+                                ctx.fillStyle = options.emptyColor
+                                ctx.fillRect layer.xpos + x * layer.tilesize, layer.ypos + y * layer.tilesize, xsize, ysize
+                                debug "draw_subtile"
                                 return
 
                         view = $this.data "view"
@@ -79,13 +150,12 @@ methods =
                                         xtilenum: null,
                                         ytilenum: null,
                                         level: null,
-                                        maxlevel: (Math.ceil Math.log((Math.max options.width, options.height) / options.tilesize) / Math.log(2)),
-                                        tilesize: options.tilesize,
+                                        maxlevel: null,
                                         thumb: null,
+                                        tailsize: null,
                                         width: options.width,
                                         height: options.height,
                                         tiles: []
-                                layer.level = Math.max 0, layer.maxlevel - 1
                                 $this.data "layer", layer
 
                                 $(view.canvas).css ("background-color": "#222", "width": layer.width, "height": layer.height)
@@ -96,7 +166,12 @@ methods =
                                         $(view.status).addClass "status"
                                         $this.append view.status
                                 setmode "pan"
-
+                                layer.maxlevel = Math.ceil Math.log((Math.max options.width, options.height) / dzi.tileSize) / Math.log(2)
+                                layer.maxlevel = 15
+                                layer.level = Math.max 0, layer.maxlevel - 1
+                                debug layer
+                                #return
+                                layer.tilesize = dzi.tileSize / 2
                                 recalc_viewparams()
                                 draw()
                                 debug "view"

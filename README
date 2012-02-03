@@ -1,4 +1,13 @@
+This is a proof of concept.
+I tried to extend [openzoom.js](/openzoom/openzoom.js) and learned [CoffeeScript](/jashkenas/coffee-script).
+
+For working DeepZoom viewer without flash, try out :
+- (/MrSwitch/jquery-seadragon.js)
+- (/thingsinjars/SeadragonHotspots)
+- (/thatcher/openseadragon)
+- (/rsimon/seajax-utils)
+
 Inspired by :
-- https://github.com/openzoom/openzoom.js
-- https://github.com/openzoom/deepzoom.py
-- http://code.google.com/p/tileviewer
+- (/openzoom/deepzoom.py)
+- (/openzoom/deepzoom.py)
+- (http://code.google.com/p/tileviewer)
